@@ -1,77 +1,171 @@
 import './style.css'
-// The essence of Hangman AKA "Guess the word":
-// Enter characters
-// See which characters they guessed
-// See which characters they got wrong
-// Be told when they guessed the word
-// Be told when they lose the game
+type State = {
+  word: string
+  characters: string[]
+  maxmistakes: number
+  streak: number
+}
 
-// ???: How do we get a random
+const WORDS = [
+  'edona',
+  'pranvera',
+  'edi',
+  'musli',
+  'jemini'
+]
 
-let state = {
-  word: 'welcome',
+function getarandomWord () {
+  let randomIndex = Math.floor(Math.random() * WORDS.length)
+  return WORDS[randomIndex]
+}
+
+let state: State = {
+  word: getarandomWord(),
   characters: [],
-  maxMistakes: 3
+  maxmistakes: 5,
+  streak: 0
 }
 
-// Q: What's the word we're guesssing? ✅ state.word
-
-// Q: What letters has the user entered?  ✅ state.characters
-// Note: Don't allow the user to enter the same letter more than once
-
-// Q: How many attempts do we have? ✅ state.maxMistakes
-
-// Q: How many mistakes has the user made so far?
-// Count the letters in state.characters that ARE NOT in state.word
-function getMistakes () {
-  let mistakes = state.characters.filter(char => !state.word.includes(char))
-  return mistakes
+function restart () {
+  state.word = getarandomWord()
+  state.characters = []
+  render()
+}
+function getthewrongasnwers () {
+  return state.characters.filter(char => !state.word.includes(char))
 }
 
-function getMistakeCount () {
-  let mistakes = getMistakes()
+function getthewrongasnwersCount () {
+  let mistakes = getthewrongasnwers()
   return mistakes.length
 }
 
-// Q: How many correct guesses has the user made so far?
-// Count the letters in state.characters that ARE in state.word
-
-// Q: Has the user won?
-function checkIfUserWon(): boolean {
-  // are all the letters in the word in the guesses?
-  true
+function getthecorrectanswers () {
+  return state.characters.filter(char => state.word.includes(char))
 }
 
-// Q: Has the user lost?
-function checkIfUserLost(): boolean {
-  // is the count of mistakes >= than maxMistakes?
-  false
+function ifWon () {
+  for (let char of state.word) {
+    if (!state.characters.includes(char)) return false
+  }
+  return true
 }
 
+function ifLost () {
+  return getthewrongasnwersCount() >= state.maxmistakes
+}
+
+function renderWord () {
+  let wordEl = document.createElement('div')
+  wordEl.className = 'word'
+
+  let correctGuesses = getthecorrectanswers()
+
+  for (let char of state.word) {
+    let charEl = document.createElement('span')
+    charEl.className = 'char'
+
+    if (correctGuesses.includes(char)) {
+      charEl.textContent = char
+    } else {
+      charEl.textContent = '_'
+    }
+
+    wordEl.append(charEl)
+  }
+  return wordEl
+}
+
+function renderthewrongasnwers() {
+  let mistakesSpan = document.createElement('div')
+  mistakesSpan.className = 'mistakes'
+  mistakesSpan.textContent = `Mistakes: ${getthewrongasnwers()} (${getthewrongasnwersCount()})`
+
+  if (getthewrongasnwersCount() === state.maxmistakes - 1)
+    mistakesSpan.classList.add('almost-lost')
+  return mistakesSpan
+}
+
+function renderWinningMessage () {
+  let winMessageDiv = document.createElement('div')
+  let winMessageP = document.createElement('p')
+  winMessageP.textContent = 'You win, congrats!'
+  let restartButton = document.createElement('button')
+  restartButton.textContent = 'RESTART'
+  restartButton.className = 'restart-button'
+  restartButton.addEventListener('click', function () {
+    state.streak++
+    restart()
+  })
+
+  winMessageDiv.append(winMessageP, restartButton)
+
+  return winMessageDiv
+}
+
+function renderLosingMessage () {
+  let lostMessageDiv = document.createElement('div')
+
+  let lostMessageP = document.createElement('p')
+  lostMessageP.textContent = `You lost! The word was: ${state.word}`
+
+  let restartButton = document.createElement('button')
+  restartButton.textContent = 'RESTART'
+  restartButton.className = 'restart-button'
+  restartButton.addEventListener('click', function () {
+    state.streak = 0
+    restart()
+  })
+
+  lostMessageDiv.append(lostMessageP, restartButton)
+
+  return lostMessageDiv
+}
+
+function renderStreak () {
+  let streakDiv = document.createElement('div')
+  streakDiv.className = 'streak'
+  streakDiv.textContent = `Streak: ${state.streak}`
+  return streakDiv
+}
 
 function render () {
   let appEl = document.querySelector('#app')
   if (appEl === null) return
   appEl.textContent = ''
 
-  let mistakesSpan = document.createElement('span')
-  mistakesSpan.textContent = `Mistakes: ${getMistakes()} (${getMistakeCount()})`
+  let wordEl = renderWord()
+  let mistakesSpan = renderthewrongasnwers()
+  let streakEl = renderStreak()
 
-  appEl.append(mistakesSpan)
+  appEl.append(wordEl, mistakesSpan, streakEl)
+
+  if (ifWon()) {
+    let winningMessageDiv = renderWinningMessage()
+    appEl.append(winningMessageDiv)
+  }
+
+  if (ifLost()) {
+    let losingMessageDiv = renderLosingMessage()
+    appEl.append(losingMessageDiv)
+  }
 }
 
 function listenToUserKeypresses () {
-  document.addEventListener('keyup', function () {
-    console.log('the user entered a character!')
+  document.addEventListener('keyup', function (event) {
+    let guess = event.key.toLowerCase()
+
+    let letters = 'abcdefghijklmnopqrstuvwxyz'
+
+    if (!letters.includes(guess)) return
+    if (state.characters.includes(guess)) return
+    if (ifLost()) return
+    if (ifWon()) return
+    state.characters.push(guess)
     render()
   })
 }
 
 listenToUserKeypresses()
 render()
-
-
-
-
-
 
