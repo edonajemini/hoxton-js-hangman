@@ -86,7 +86,7 @@ function renderthewrongasnwers() {
 function renderWinningMessage () {
   let winMessageDiv = document.createElement('div')
   let winMessageP = document.createElement('p')
-  winMessageP.textContent = 'You win, congrats!'
+  winMessageP.textContent = 'You won!'
   let restartButton = document.createElement('button')
   restartButton.textContent = 'RESTART'
   restartButton.className = 'restart-button'
