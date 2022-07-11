@@ -15,8 +15,8 @@ const WORDS = [
 ]
 
 function getarandomWord () {
-  let randomIndex = Math.floor(Math.random() * WORDS.length)
-  return WORDS[randomIndex]
+  let randomletter = Math.floor(Math.random() * WORDS.length)
+  return WORDS[randomletter]
 }
 
 let state: State = {
@@ -80,9 +80,6 @@ function renderthewrongasnwers() {
   let mistakesSpan = document.createElement('div')
   mistakesSpan.className = 'mistakes'
   mistakesSpan.textContent = `Mistakes: ${getthewrongasnwers()} (${getthewrongasnwersCount()})`
-
-  if (getthewrongasnwersCount() === state.maxmistakes - 1)
-    mistakesSpan.classList.add('almost-lost')
   return mistakesSpan
 }
 
